@@ -16,7 +16,7 @@ RaspberryPiのアドオンボード RaMsxMuse を使用して、MGSデータを�
 
 ### ビルド方法
 ```txt
-$ git clone 
+$ git clone https://github.com/cliffgraph/HopStepZ.git
 $ make
 ```
 以上で、hopstepz が生成されます。

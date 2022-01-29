@@ -1,6 +1,4 @@
-﻿// #include <stdint.h>
-// #include <memory.h>
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "tools.h"
 #include "constools.h"
 #include "RmmChipMuse.h"
@@ -11,9 +9,6 @@
 #include <wiringPi.h>
 #include <wiringPiI2C.h>
 #endif
-
-//#define USE_RAMSXMUSE // 仮
-//#define __WIRING_PI_H__	// 仮
 
 const static int GPIO_D0			= 0;
 const static int GPIO_D1			= 1;
@@ -28,7 +23,6 @@ const static int GPIO_RESET			= 14;	// 0=RESET
 const static int GPIO_AEX1			= 12;	// bit0,    Use in "HraSCC"
 const static int GPIO_AEX0			= 13;	// bit1,	AEX=0-3 = {90xxh,98xxh,B8xxh,BFxxh}
 const static int GPIO_A0			= 21;	// 0=register addr, 1=resister data
-//const static int GPIO_WR			= 22;	// 0=Write
 const static int GPIO_CSWR_YM2413	= 23;	// 0=Chip select "YM2413"
 const static int GPIO_CSWR_YMZ294	= 24;	// 0=Chip select "YMZ294"
 const static int GPIO_CSWR_HraSCC	= 25;	// 0=Chip select "HraSCC"
@@ -234,41 +228,15 @@ static const int OPLLwait84 = static_cast<int>(((90.0f * 1000000 / OPLLHZ) + 0.9
 RmmChipMuse::RmmChipMuse(const TARGETCHIP target) :
 	m_TergetChip(target)
 {
+	// 最初に生成されたインスタンスのみがHWのセットアップを行う
 	if( s_AlphaCount == 0 ) {
 		// RaSCCのクロックを設定する
 		initClockfoHraSCC();
-
-#ifdef __WIRING_PI_H__
-		// wiringPi 初期化
-		wiringPiSetup();
-		// GPIOピンのモード設定
-		pinMode(GPIO_D0, OUTPUT);
-		pinMode(GPIO_D1, OUTPUT);
-		pinMode(GPIO_D2, OUTPUT);
-		pinMode(GPIO_D3, OUTPUT);
-		pinMode(GPIO_D4, OUTPUT);
-		pinMode(GPIO_D5, OUTPUT);
-		pinMode(GPIO_D6, OUTPUT);
-		pinMode(GPIO_D7, OUTPUT);
-		pinMode(GPIO_A0, OUTPUT);
-		pinMode(GPIO_RESET, OUTPUT);
-		pinMode(GPIO_AEX1, OUTPUT);
-		pinMode(GPIO_AEX0, OUTPUT);
-		pinMode(GPIO_CSWR_YMZ294, OUTPUT);
-		pinMode(GPIO_CSWR_YM2413, OUTPUT);
-		pinMode(GPIO_CSWR_HraSCC, OUTPUT);
-
-		digitalWrite(GPIO_RESET, 1);
-		digitalWrite(GPIO_A0, 0);
-		digitalWrite(GPIO_CSWR_YMZ294, 1);
-		digitalWrite(GPIO_CSWR_YM2413, 1);
-		digitalWrite(GPIO_CSWR_HraSCC, 1);
-
-		usleep(10*1000);
+		// Setup GPIO
+		initGpio();
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		// CHIP DEVICE RESET
 		resetDevice();
-#endif
-
 	}
 	++s_AlphaCount;
 	return;	
@@ -280,6 +248,7 @@ RmmChipMuse::~RmmChipMuse()
 {
 	--s_AlphaCount;
 	if (s_AlphaCount == 0) {
+		// do nothing
 	}
 	return;	
 }
@@ -298,9 +267,9 @@ bool RmmChipMuse::ResetChip()
 bool  RmmChipMuse::SetRegister(const uint32_t addr, const uint32_t data)
 {
 	switch(m_TergetChip) {
-		case OPLL:	RmmChipMuse::setOPLL(addr, data);	break;
-		case PSG:	RmmChipMuse::setPSG(addr, data);	break;
-		case SCC:	RmmChipMuse::setSCC(addr, data);	break;
+		case OPLL:	setOPLL(addr, data);	break;
+		case PSG:	setPSG(addr, data);		break;
+		case SCC:	setSCC(addr, data);		break;
 		default:	break;
 	}
 	return true;
@@ -314,7 +283,7 @@ bool  RmmChipMuse::SetRegisterAddr(const uint32_t addr)
 		{
 			setRegAddress(addr);
 			digitalWrite(GPIO_CSWR_YM2413, 0);
-			usleep(1);	// 30ns < wait for WR,CS
+			std::this_thread::sleep_for(std::chrono::nanoseconds(30));	// 30ns < wait for WR,CS
 			digitalWrite(GPIO_CSWR_YM2413, 1);
 			usleep(OPLLwait12);	// 12us < wait for ADDR WR
 			break;
@@ -323,7 +292,7 @@ bool  RmmChipMuse::SetRegisterAddr(const uint32_t addr)
 		{
 			setRegAddress(addr);
 			digitalWrite(GPIO_CSWR_YMZ294, 0);
-			usleep(1);	// 30ns < wait for WR,CS
+			std::this_thread::sleep_for(std::chrono::nanoseconds(30));	// 30ns < wait for WR,CS
 			digitalWrite(GPIO_CSWR_YMZ294, 1);
 			usleep(OPLLwait12);	// 12us < wait for ADDR WR
 			break;
@@ -344,7 +313,7 @@ bool  RmmChipMuse::SetRegisterData(const uint32_t data)
 		{
 			setRegData(data);
 			digitalWrite(GPIO_CSWR_YM2413, 0);
-			usleep(1);	// 30ns < wait for WR,CS
+			std::this_thread::sleep_for(std::chrono::nanoseconds(30));	// 30ns < wait for WR,CS
 			digitalWrite(GPIO_CSWR_YM2413, 1);
 			usleep(OPLLwait84);	// 84us < wait for DATA WR
 			break;
@@ -353,7 +322,7 @@ bool  RmmChipMuse::SetRegisterData(const uint32_t data)
 		{
 			setRegData(data);
 			digitalWrite(GPIO_CSWR_YMZ294, 0);
-			usleep(1);	// 30ns < wait for WR,CS
+			std::this_thread::sleep_for(std::chrono::nanoseconds(30));	// 30ns < wait for WR,CS
 			digitalWrite(GPIO_CSWR_YMZ294, 1);
 			usleep(OPLLwait84);	// 84us < wait for DATA WR
 			break;
@@ -371,16 +340,13 @@ void  RmmChipMuse::setPSG(const uint32_t addr, const uint32_t data)
 #ifdef __WIRING_PI_H__
 	setRegAddress(addr);
 	digitalWrite(GPIO_CSWR_YMZ294, 0);
-	std::this_thread::sleep_for(std::chrono::nanoseconds(30));
-	//usleep(1);	// 30ns < wait for WR,CS
+	std::this_thread::sleep_for(std::chrono::nanoseconds(30));	// 30ns < wait for WR,CS
 	digitalWrite(GPIO_CSWR_YMZ294, 1);
-	std::this_thread::sleep_for(std::chrono::nanoseconds(40));
-	//usleep(1);	// 40ns < wait for WR,CS
+	std::this_thread::sleep_for(std::chrono::nanoseconds(30));	// 30ns < wait for WR,CS
 
 	setRegData(data);
 	digitalWrite(GPIO_CSWR_YMZ294, 0);
-	std::this_thread::sleep_for(std::chrono::nanoseconds(30));
-	//usleep(1);	// 30ns < wait for WR,CS
+	std::this_thread::sleep_for(std::chrono::nanoseconds(30));// 30ns < wait for WR,CS
 	digitalWrite(GPIO_CSWR_YMZ294, 1);
 #endif
 	return;
@@ -391,15 +357,13 @@ void  RmmChipMuse::setOPLL(const uint32_t addr, const uint32_t data)
 #ifdef __WIRING_PI_H__
 	setRegAddress(addr);
 	digitalWrite(GPIO_CSWR_YM2413, 0);
-	std::this_thread::sleep_for(std::chrono::nanoseconds(30));
-	//usleep(1);	// 30ns < wait for WR,CS
+	std::this_thread::sleep_for(std::chrono::nanoseconds(30));	// 30ns < wait for WR,CS
 	digitalWrite(GPIO_CSWR_YM2413, 1);
 	usleep(OPLLwait12);	// 12us < wait for ADDR WR
 
 	setRegData(data);
 	digitalWrite(GPIO_CSWR_YM2413, 0);
-	std::this_thread::sleep_for(std::chrono::nanoseconds(30));
-	//usleep(1);	// 30ns < wait for WR,CS
+	std::this_thread::sleep_for(std::chrono::nanoseconds(30));	// 30ns < wait for WR,CS
 	digitalWrite(GPIO_CSWR_YM2413, 1);
 	usleep(OPLLwait84);	// 84us < wait for DATA WR
 #endif
@@ -409,13 +373,24 @@ void  RmmChipMuse::setOPLL(const uint32_t addr, const uint32_t data)
 void  RmmChipMuse::setSCC(const uint32_t addr, const uint32_t data)
 {
 #ifdef __WIRING_PI_H__
-	setRegAddressEX(addr);
-	setRegAddress(addr & 0x00ff);
+	uint8_t aex = 0;
+	switch(addr & 0xFF00)
+	{
+		case 0x9000: aex = 0x00;	break;
+		case 0x9800: aex = 0x01;	break;
+		case 0xB800: aex = 0x02;	break;
+		case 0xBF00: aex = 0x03;	break;
+	}
+	digitalWrite(GPIO_A0, 0);
+	digitalWrite(GPIO_AEX0, (aex>>0) & 0x01);
+	digitalWrite(GPIO_AEX1, (aex>>1) & 0x01);
+	sendPinD(static_cast<uint8_t>(addr));
 	digitalWrite(GPIO_CSWR_HraSCC, 0);
 	std::this_thread::sleep_for(std::chrono::nanoseconds(10));
 	digitalWrite(GPIO_CSWR_HraSCC, 1);
 
-	setRegData(data);
+	digitalWrite(GPIO_A0, 1);
+	sendPinD(static_cast<uint8_t>(data));
 	digitalWrite(GPIO_CSWR_HraSCC, 0);
 	std::this_thread::sleep_for(std::chrono::nanoseconds(10));
 	digitalWrite(GPIO_CSWR_HraSCC, 1);
@@ -427,7 +402,7 @@ void  RmmChipMuse::setRegAddress(const uint32_t addr)
 {
 #ifdef __WIRING_PI_H__
 	digitalWrite(GPIO_A0, 0);
-	usleep(1);	// 5ns < wait for Hold A0 
+//	std::this_thread::sleep_for(std::chrono::nanoseconds(5));
 	sendPinD(static_cast<uint8_t>(addr));
 #endif
 	return;
@@ -437,7 +412,7 @@ void  RmmChipMuse::setRegData(const uint32_t data)
 {
 #ifdef __WIRING_PI_H__
 	digitalWrite(GPIO_A0, 1);
-	usleep(1);	// 5ns < wait for Hold A0 
+//	std::this_thread::sleep_for(std::chrono::nanoseconds(5));
 	sendPinD(static_cast<uint8_t>(data));
 #endif
 	return;
@@ -708,3 +683,33 @@ void RmmChipMuse::initClockfoHraSCC()
 	return;
 }
 
+void RmmChipMuse::initGpio()
+{
+#ifdef __WIRING_PI_H__
+	// wiringPi 初期化
+	wiringPiSetup();
+	// GPIOピンのモード設定
+	pinMode(GPIO_D0, OUTPUT);
+	pinMode(GPIO_D1, OUTPUT);
+	pinMode(GPIO_D2, OUTPUT);
+	pinMode(GPIO_D3, OUTPUT);
+	pinMode(GPIO_D4, OUTPUT);
+	pinMode(GPIO_D5, OUTPUT);
+	pinMode(GPIO_D6, OUTPUT);
+	pinMode(GPIO_D7, OUTPUT);
+	pinMode(GPIO_A0, OUTPUT);
+	pinMode(GPIO_RESET, OUTPUT);
+	pinMode(GPIO_AEX1, OUTPUT);
+	pinMode(GPIO_AEX0, OUTPUT);
+	pinMode(GPIO_CSWR_YMZ294, OUTPUT);
+	pinMode(GPIO_CSWR_YM2413, OUTPUT);
+	pinMode(GPIO_CSWR_HraSCC, OUTPUT);
+
+	digitalWrite(GPIO_RESET, 1);
+	digitalWrite(GPIO_A0, 0);
+	digitalWrite(GPIO_CSWR_YMZ294, 1);
+	digitalWrite(GPIO_CSWR_YM2413, 1);
+	digitalWrite(GPIO_CSWR_HraSCC, 1);
+#endif
+	return;
+}

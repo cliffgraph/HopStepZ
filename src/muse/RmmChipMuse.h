@@ -34,4 +34,5 @@ private:
 	void resetDevice();
 	void initRegs();
 	void initClockfoHraSCC();
+	void initGpio();
 };

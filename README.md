@@ -34,6 +34,11 @@ $ ./hopstepz MGSDRV.COM file.mgs
 SCC の再生はテンポ遅くなる場合があります。RaspberryPi4Bを使用している場合は、CPUの動作クロックを 2GHzにクロックアップしてみてください。ただしRaspberryPi4Bの保証が無くなる様ですので、それが承諾できない場合はクロックアップは行わないでください。
 
 ## 履歴
-- 2022/01/25 初版 HopStepZ Ver 1.00 by Harumakkin
+- 2022/01/25 初版 Ver 1.00
+- 2022/01/29      Ver 1.01、音源チップのアクセスタイミングを調整した。RaspberryPi4はクロックアップせずに1.5GHzの動作でOK。ただし、arm_freq=1500、force_turbo=1を追加して、1.5GHz固定で動作させる必要あり
+
+
+
+
 
 以上

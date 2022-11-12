@@ -4323,37 +4323,37 @@ void CZ80MsxDos::op_SRA_A()
 	m_R.Sra8(&m_R.L);
 	return;
 }
-void CZ80MsxDos::op_SLL_B()	// 未定義命令
+void CZ80MsxDos::op_SLL_B()	// undoc.Z80
 {
 	m_R.Sll8(&m_R.B);
 	return;
 }
-void CZ80MsxDos::op_SLL_C()	// 未定義命令
+void CZ80MsxDos::op_SLL_C()	// undoc.Z80
 {
 	m_R.Sll8(&m_R.C);
 	return;
 }
-void CZ80MsxDos::op_SLL_D()	// 未定義命令
+void CZ80MsxDos::op_SLL_D()	// undoc.Z80
 {
 	m_R.Sll8(&m_R.D);
 	return;
 }
-void CZ80MsxDos::op_SLL_E()	// 未定義命令
+void CZ80MsxDos::op_SLL_E()	// undoc.Z80
 {
 	m_R.Sll8(&m_R.E);
 	return;
 }
-void CZ80MsxDos::op_SLL_H()	// 未定義命令
+void CZ80MsxDos::op_SLL_H()	// undoc.Z80
 {
 	m_R.Sll8(&m_R.H);
 	return;
 }
-void CZ80MsxDos::op_SLL_L()	// 未定義命令
+void CZ80MsxDos::op_SLL_L()	// undoc.Z80
 {
 	m_R.Sll8(&m_R.L);
 	return;
 }
-void CZ80MsxDos::op_SLL_memHL()	// 未定義命令
+void CZ80MsxDos::op_SLL_memHL()	// undoc.Z80
 {
 	uint16_t ad = m_R.GetHL();
 	uint8_t v = m_pMemSys->Read(ad);
@@ -4361,7 +4361,7 @@ void CZ80MsxDos::op_SLL_memHL()	// 未定義命令
 	m_pMemSys->Write(m_R.GetHL(), v);
 	return;
 }
-void CZ80MsxDos::op_SLL_A()	// 未定義命令
+void CZ80MsxDos::op_SLL_A()	// undoc.Z80
 {
 	m_R.Sll8(&m_R.A);
 	return;
@@ -5722,9 +5722,8 @@ void CZ80MsxDos::op_EXTENDED_2IX2()
 {
 	// このマシンコードは、DDh+CBh+nn+vv の形式になっていて、
 	// データ部nnがコードの途中に位置していることに注意する
-	// このメソッドが呼ばれた時点で、DDh+CBhまではでコードされているから、
-	// PCの位置はnnを示している。子スレッドを呼び出す時はこの位置を維持する。
-	// 子スレッドから戻ったら// 06hの分のPC++を行う。
+	// このメソッドが呼ばれた時点で、DDh+CBhまではデコードされているからPCの位置はnnを示している。
+	// 子メソッドを呼び出す時はこの位置を維持する。子メソッドから戻ったら06hの分のPC++を行う。
 	uint8_t vv = m_pMemSys->Read(m_R.PC+1);
 	auto pFunc = OpCode_Extended2IX2[vv].pFunc;
 	(this->*pFunc)();
@@ -6864,9 +6863,8 @@ void CZ80MsxDos::op_EXTENDED_4IY2()
 {
 	// このマシンコードは、DDh+CBh+nn+vv の形式になっていて、
 	// データ部nnがコードの途中に位置していることに注意する
-	// このメソッドが呼ばれた時点で、DDh+CBhまではでコードされているから、
-	// PCの位置はnnを示している。子スレッドを呼び出す時はこの位置を維持する。
-	// 子スレッドから戻ったら// 06hの分のPC++を行う。
+	// このメソッドが呼ばれた時点で、DDh+CBhまではデコードされているからPCの位置はnnを示している。
+	// 子メソッドを呼び出す時はこの位置を維持する。子メソッドから戻ったら06hの分のPC++を行う。
 	uint8_t vv = m_pMemSys->Read(m_R.PC+1);
 	auto pFunc = OpCode_Extended4IY2[vv].pFunc;
 	(this->*pFunc)();

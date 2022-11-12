@@ -29,6 +29,7 @@ private:
 	void setRegAddress(const uint32_t addr);
 	void setRegData(const uint32_t data);
 	void sendPinD(const uint8_t data);
+	void sendPinDW(const uint16_t data);
 	void setRegAddressEX(const uint32_t addr);
 
 	void resetDevice();

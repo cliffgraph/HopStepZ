@@ -19,6 +19,15 @@ const static int GPIO_D5			= 5;
 const static int GPIO_D6			= 6;
 const static int GPIO_D7			= 7;
 
+const static int GPIO_D8			= 15;
+const static int GPIO_D9			= 16;
+const static int GPIO_D10			= 10;
+const static int GPIO_D11			= 11;
+const static int GPIO_D12			= 26;
+const static int GPIO_D13			= 27;
+const static int GPIO_D14			= 28;
+const static int GPIO_D15			= 29;
+
 const static int GPIO_RESET			= 14;	// 0=RESET
 const static int GPIO_AEX1			= 12;	// bit0,    Use in "HraSCC"
 const static int GPIO_AEX0			= 13;	// bit1,	AEX=0-3 = {90xxh,98xxh,B8xxh,BFxxh}
@@ -248,7 +257,7 @@ RmmChipMuse::~RmmChipMuse()
 {
 	--s_AlphaCount;
 	if (s_AlphaCount == 0) {
-		// do nothing
+		initRegs();
 	}
 	return;	
 }
@@ -381,16 +390,13 @@ void  RmmChipMuse::setSCC(const uint32_t addr, const uint32_t data)
 		case 0xB800: aex = 0x02;	break;
 		case 0xBF00: aex = 0x03;	break;
 	}
-	digitalWrite(GPIO_A0, 0);
+
 	digitalWrite(GPIO_AEX0, (aex>>0) & 0x01);
 	digitalWrite(GPIO_AEX1, (aex>>1) & 0x01);
-	sendPinD(static_cast<uint8_t>(addr));
-	digitalWrite(GPIO_CSWR_HraSCC, 0);
-	std::this_thread::sleep_for(std::chrono::nanoseconds(10));
-	digitalWrite(GPIO_CSWR_HraSCC, 1);
 
-	digitalWrite(GPIO_A0, 1);
-	sendPinD(static_cast<uint8_t>(data));
+	uint16_t addt = static_cast<uint16_t>(((addr&0xff)<<8)|(data&0xff));
+	sendPinDW(addt);
+
 	digitalWrite(GPIO_CSWR_HraSCC, 0);
 	std::this_thread::sleep_for(std::chrono::nanoseconds(10));
 	digitalWrite(GPIO_CSWR_HraSCC, 1);
@@ -440,14 +446,28 @@ void  RmmChipMuse::sendPinD(const uint8_t data)
 #ifdef __WIRING_PI_H__
 	const static int PINS[] = {GPIO_D0,GPIO_D1,GPIO_D2,GPIO_D3,GPIO_D4,GPIO_D5,GPIO_D6,GPIO_D7};
 	const static int LEN = sizeof(PINS)/sizeof(PINS[0]);
-	auto d = data;
 	for( int t = 0; t < LEN; ++t){
-		digitalWrite(PINS[t], d & 0x01);
-		d >>= 1;
+		digitalWrite(PINS[t], (data>>t) & 0x01);
 	}
 #endif
 	return;
 }
+
+void  RmmChipMuse::sendPinDW(const uint16_t data)
+{
+#ifdef __WIRING_PI_H__
+	const static int PINS[] = {
+		GPIO_D0, GPIO_D1, GPIO_D2, GPIO_D3, GPIO_D4, GPIO_D5, GPIO_D6, GPIO_D7,
+		GPIO_D8, GPIO_D9, GPIO_D10,GPIO_D11,GPIO_D12,GPIO_D13,GPIO_D14,GPIO_D15,
+	};
+	const static int LEN = sizeof(PINS)/sizeof(PINS[0]);
+	for( int t = 0; t < LEN; ++t){
+		digitalWrite(PINS[t], (data>>t) & 0x01);
+	}
+#endif
+	return;
+}
+
 
 void  RmmChipMuse::resetDevice()
 {
@@ -697,6 +717,15 @@ void RmmChipMuse::initGpio()
 	pinMode(GPIO_D5, OUTPUT);
 	pinMode(GPIO_D6, OUTPUT);
 	pinMode(GPIO_D7, OUTPUT);
+	pinMode(GPIO_D8, OUTPUT);
+	pinMode(GPIO_D9, OUTPUT);
+	pinMode(GPIO_D10, OUTPUT);
+	pinMode(GPIO_D11, OUTPUT);
+	pinMode(GPIO_D12, OUTPUT);
+	pinMode(GPIO_D13, OUTPUT);
+	pinMode(GPIO_D14, OUTPUT);
+	pinMode(GPIO_D15, OUTPUT);
+
 	pinMode(GPIO_A0, OUTPUT);
 	pinMode(GPIO_RESET, OUTPUT);
 	pinMode(GPIO_AEX1, OUTPUT);

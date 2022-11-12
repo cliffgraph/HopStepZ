@@ -14,6 +14,12 @@ CMsxMusic::CMsxMusic()
 }
 CMsxMusic::~CMsxMusic()
 {
+	m_pOpll->SetRegister(0x0e, 0x20);
+	m_pOpll->SetRegister(0x36, 0x00);
+	m_pOpll->SetRegister(0x37, 0x00);
+	m_pOpll->SetRegister(0x38, 0x00);
+
+	m_pOpll->SetRegister(0x0e, 0x00);
 	m_pOpll->SetRegister(0x30, 0x0F);
 	m_pOpll->SetRegister(0x31, 0x0F);
 	m_pOpll->SetRegister(0x32, 0x0F);
@@ -23,6 +29,7 @@ CMsxMusic::~CMsxMusic()
 	m_pOpll->SetRegister(0x36, 0x0F);
 	m_pOpll->SetRegister(0x37, 0x0F);
 	m_pOpll->SetRegister(0x38, 0x0F);
+	
 	m_pPsg->SetRegister(0x08, 0x00);
 	m_pPsg->SetRegister(0x09, 0x00);
 	m_pPsg->SetRegister(0x0A, 0x00);
@@ -49,7 +56,6 @@ uint8_t CMsxMusic::ReadMem(const z80memaddr_t addr) const
 bool CMsxMusic::OutPort(const z80ioaddr_t addr, const uint8_t b)
 {
 	bool bRetc = true;
-	//bool b2 = false;
 	switch(addr)
 	{
 	// OPLL- REGISTAR ADDRESS RATCH

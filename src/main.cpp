@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 #endif
 {
 	setlocale(LC_ALL, "");
-	std::wcout << _T("\n") << _T("HopStepZ version 1.01 by @harumakkin. 2021\n");
+	std::wcout << _T("\n") << _T("HopStepZ version 1.10 by @harumakkin. 2021\n");
 	if( argc != 3 ){
 		std::wcout << _T(" USAGE: hopstepz \"mgsdrv.com\" \"file.MGS\"\n\n");
 		return EXIT_FAILURE;
